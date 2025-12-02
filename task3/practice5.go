@@ -27,7 +27,7 @@ type Comment struct {
 	PostID  int
 }
 
-func main() {
+func InitDB() *gorm.DB {
 	db, err := gorm.Open(mysql.Open("root:admin123@tcp(127.0.0.1:3306)/gorm?charset=utf8mb4&parseTime=True&loc=Local"))
 	if err != nil {
 		panic(err)
@@ -35,4 +35,9 @@ func main() {
 	//建表
 	db.Debug().AutoMigrate(&User{}, &Post{}, &Comment{})
 	fmt.Println("建表成功")
+	return db
 }
+
+// func main() {
+// 	 InitDB()
+// }
