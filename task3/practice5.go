@@ -8,17 +8,19 @@ import (
 )
 
 type User struct {
-	ID    int `gorm:"primaryKey;autoIncrement"`
-	Name  string
-	Posts []Post `gorm:"foreignKey:UserID"`
+	ID        int `gorm:"primaryKey;autoIncrement"`
+	Name      string
+	PostCount int
+	Posts     []Post `gorm:"foreignKey:UserID"`
 }
 
 type Post struct {
-	ID       int `gorm:"primaryKey;autoIncrement"`
-	Title    string
-	Content  string
-	UserID   int
-	Comments []Comment `gorm:"foreignKey:PostID"`
+	ID             int `gorm:"primaryKey;autoIncrement"`
+	Title          string
+	Content        string
+	UserID         int
+	CommentsStatus int
+	Comments       []Comment `gorm:"foreignKey:PostID"`
 }
 
 type Comment struct {
@@ -33,7 +35,7 @@ func InitDB() *gorm.DB {
 		panic(err)
 	}
 	//建表
-	db.Debug().AutoMigrate(&User{}, &Post{}, &Comment{})
+	db.AutoMigrate(&User{}, &Post{}, &Comment{})
 	fmt.Println("建表成功")
 	return db
 }
