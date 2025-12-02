@@ -17,6 +17,7 @@ type Transactions struct {
 	ID            int `gorm:"primaryKey;autoIncrement"`
 	FromAccountId int
 	ToAccountId   int
+	Amount        float32
 }
 
 func insertAccounts(db *gorm.DB, balance float32) {
@@ -25,7 +26,7 @@ func insertAccounts(db *gorm.DB, balance float32) {
 	if result.Error != nil {
 		panic(result.Error)
 	}
-	fmt.Printf("Account id=%d RowsAffected=%d", account.ID, result.RowsAffected)
+	fmt.Printf("Account id=%d RowsAffected=%d\n", account.ID, result.RowsAffected)
 }
 
 func transferAccounts(db *gorm.DB, fromAccount *Accounts, toAccount *Accounts, transferAmount float32) error {
@@ -38,9 +39,10 @@ func transferAccounts(db *gorm.DB, fromAccount *Accounts, toAccount *Accounts, t
 	}
 	fromAccount.Balance -= transferAmount
 	toAccount.Balance += transferAmount
-	db.Save(fromAccount)
-	db.Save(toAccount)
-	result := db.Create(&Transactions{FromAccountId: fromAccount.ID, ToAccountId: toAccount.ID})
+	db.Debug().Save(fromAccount)
+	db.Debug().Save(toAccount)
+	result := db.Debug().Create(&Transactions{FromAccountId: fromAccount.ID,
+		ToAccountId: toAccount.ID, Amount: transferAmount})
 	return result.Error
 }
 
@@ -59,20 +61,22 @@ func main() {
 	db.AutoMigrate(&Accounts{}, &Transactions{})
 
 	//插入数据
-	insertAccounts(db, 1000)
-	insertAccounts(db, 100)
+	//insertAccounts(db, 1000)
+	//insertAccounts(db, 100)
 
 	//查询数据
-	// fromAccount := findAccount(db, 1)
-	// toAccount := findAccount(db, 2)
+	fromAccount := findAccount(db, 1)
+	toAccount := findAccount(db, 2)
 
-	// //转账100
-	// db.Transaction(func(tx *gorm.DB) error {
-	// 	if err := transferAccounts(db, &fromAccount, &toAccount, 100); err != nil {
-	// 		return err
-	// 	}
+	//转账100
+	db.Transaction(func(tx *gorm.DB) error {
+		if err := transferAccounts(db, &fromAccount, &toAccount, 100); err != nil {
+			fmt.Println("转账失败：", err)
+			return err
+		}
 
-	// 	return nil
-	// })
+		fmt.Println("转账成功")
+		return nil
+	})
 
 }
