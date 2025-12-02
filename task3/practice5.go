@@ -33,6 +33,6 @@ func main() {
 		panic(err)
 	}
 	//建表
-	db.AutoMigrate(&User{}, &Post{}, &Comment{})
+	db.Debug().AutoMigrate(&User{}, &Post{}, &Comment{})
 	fmt.Println("建表成功")
 }
