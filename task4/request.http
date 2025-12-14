@@ -1,0 +1,63 @@
+### 用户注册
+POST http://localhost:8080/api/v1/users/register  HTTP/1.1
+content-type: application/json
+
+{
+    "username":"李四",
+    "email":"lisi@test.com",
+    "password":"123456"
+}
+
+### 用户登录
+POST http://localhost:8080/api/v1/user/login  HTTP/1.1
+content-type: application/json
+
+{
+    "username":"张三",
+    "password":"123456"
+}
+
+
+### 新增文章
+POST http://localhost:8080/api/v1/posts  HTTP/1.1
+content-type: application/json
+
+{
+    "userId":2,
+    "title":"计算机的主要特点",
+    "content":"运算速度快 (High Speed): 计算机能以极高的速度（纳秒级）进行计算，比人工快无数倍。计算精度高 (High Precision): 在字长足够的情况下，计算精度理论上不受限制，错误率极低。强大的记忆能力 (Memory): 能够存储海量的数据和信息。逻辑判断能力 (Logical Judgment): 可以根据条件进行判断，选择不同处理方式，实现管理、决策等功能。自动化和程序控制 (Automation & Control): 能够按照预设的程序自动执行指令，无需人工干预"
+}
+
+### 获取某个用户的所有文章
+GET  http://localhost:8080/api/v1/users/1/posts HTTP/1.1
+
+### 获取某个文章
+GET  http://localhost:8080/api/v1/posts/1 HTTP/1.1
+
+
+### 更新文章
+PUT http://localhost:8080/api/v1/posts  HTTP/1.1
+content-type: application/json
+
+{
+    "id":1,
+    "title":"问如何使用gorm从数据库返回新创建的记录",
+    "content":"我有一个创建新用户的函数，但是获取用户值的推荐方法不包括由数据库(id，created_at)创建的自动生成的值"
+}
+
+### 删除某个文章
+DELETE   http://localhost:8080/api/v1/posts/1 HTTP/1.1
+
+### 新增评论
+POST http://localhost:8080/api/v1/comments  HTTP/1.1
+content-type: application/json
+
+{
+    "userId":2,
+    "postId":2,
+    "content":"写的不错哦"
+}
+
+
+### 删除评论
+DELETE  http://localhost:8080/api/v1/comments/2  HTTP/1.1
