@@ -6,8 +6,8 @@ POST http://localhost:8080/api/v1/users/register  HTTP/1.1
 Content-type: {{type}}
 
 {
-    "username":"张三",
-    "email":"zhangshan@test.com",
+    "username":"王五",
+    "email":"wangwu@test.com",
     "password":"123456"
 }
 
@@ -27,7 +27,7 @@ Content-type: {{type}}
 Authorization: {{token}}
 
 {
-    "title":"计算机的主要特点1",
+    "title":"计算机的主要特点2",
     "content":"运算速度快 (High Speed): 计算机能以极高的速度（纳秒级）进行计算，比人工快无数倍。计算精度高 (High Precision): 在字长足够的情况下，计算精度理论上不受限制，错误率极低。强大的记忆能力 (Memory): 能够存储海量的数据和信息。逻辑判断能力 (Logical Judgment): 可以根据条件进行判断，选择不同处理方式，实现管理、决策等功能。自动化和程序控制 (Automation & Control): 能够按照预设的程序自动执行指令，无需人工干预"
 }
 
@@ -36,7 +36,7 @@ GET  http://localhost:8080/api/v1/auth/users/posts HTTP/1.1
 Authorization: {{token}}
 
 ### 获取某个文章
-GET  http://localhost:8080/api/v1/auth/posts/1 HTTP/1.1
+GET  http://localhost:8080/api/v1/auth/posts/2 HTTP/1.1
 Authorization: {{token}}
 
 
@@ -61,11 +61,15 @@ Content-type: {{type}}
 Authorization: {{token}}
 
 {
-    "postId":2,
+    "postId":1,
     "content":"写的不错哦"
 }
 
 
-### 删除评论
+### 删除某个post的所有评论
+DELETE  http://localhost:8080/api/v1/auth/comments/post/2  HTTP/1.1
+Authorization: {{token}}
+
+### 删除某个评论
 DELETE  http://localhost:8080/api/v1/auth/comments/2  HTTP/1.1
 Authorization: {{token}}

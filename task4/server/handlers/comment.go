@@ -1,21 +1,20 @@
 package handlers
 
 import (
-	"fmt"
-	"net/http"
+	"errors"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"metanode.com/homework/server/db"
 	"metanode.com/homework/server/dto"
 	"metanode.com/homework/server/models"
+	"metanode.com/homework/server/utils"
 )
 
 func AddComment(c *gin.Context) {
 	var toAddComment dto.CommentRequest
 	if err := c.ShouldBindJSON(&toAddComment); err != nil {
-		fmt.Print(err)
-		c.JSON(http.StatusBadRequest, gin.H{"data": "", "error": "invalid params"})
+		c.Error(err)
 		return
 	}
 
@@ -25,31 +24,51 @@ func AddComment(c *gin.Context) {
 	//dto转model
 	comment := dto.ToCreateCommentModel(&toAddComment)
 	if err := comment.AddComment(db.GetDB()); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"data": "", "error": err.Error()})
+		c.Error(err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": comment, "error": ""})
+	utils.Success(c, comment)
 }
 
-func DeleteComment(c *gin.Context) {
+func DeletePostComment(c *gin.Context) {
 	postIDStr := c.Param("postId")
 	if postIDStr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"data": "", "error": "post id can not be empty"})
+		c.Error(errors.New("post id can not be empty"))
 		return
 	}
 
 	postID, err := strconv.ParseInt(postIDStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"data": "", "error": "can not parse id to uint",
-		})
+		c.Error(errors.New("can not parse postId to uint"))
 		return
 	}
 
 	var comment = models.Comments{PostID: uint(postID)}
-	if err := comment.DeleteComment(db.GetDB()); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"data": "", "error": err.Error()})
+	if err := comment.DeletePostComment(db.GetDB()); err != nil {
+		c.Error(err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": postID, "error": ""})
+	utils.Success(c, postID)
+}
+
+func DeleteComment(c *gin.Context) {
+	IDStr := c.Param("id")
+	if IDStr == "" {
+		c.Error(errors.New("id can not be empty"))
+		return
+	}
+
+	id, err := strconv.ParseInt(IDStr, 10, 32)
+	if err != nil {
+		c.Error(errors.New("can not parse id to uint"))
+		return
+	}
+
+	var comment = models.Comments{}
+	comment.ID = uint(id)
+	if err := comment.DeleteComment(db.GetDB()); err != nil {
+		c.Error(err)
+		return
+	}
+	utils.Success(c, comment.ID)
 }

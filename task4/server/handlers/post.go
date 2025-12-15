@@ -1,21 +1,20 @@
 package handlers
 
 import (
-	"fmt"
-	"net/http"
+	"errors"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"metanode.com/homework/server/db"
 	"metanode.com/homework/server/dto"
 	"metanode.com/homework/server/models"
+	"metanode.com/homework/server/utils"
 )
 
 func AddPost(c *gin.Context) {
 	var toAddPost dto.PostRequest
 	if err := c.ShouldBindJSON(&toAddPost); err != nil {
-		fmt.Print(err)
-		c.JSON(http.StatusBadRequest, gin.H{"data": "", "error": "invalid params"})
+		c.Error(err)
 		return
 	}
 	//从上下文中获取userId
@@ -25,51 +24,46 @@ func AddPost(c *gin.Context) {
 	//dto转model
 	post := dto.ToCreatePostModel(&toAddPost)
 	if err := post.AddPost(db.GetDB()); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"data": "", "error": err.Error()})
+		c.Error(err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": post, "error": ""})
+	utils.Success(c, post)
 }
 
 func GetPost(c *gin.Context) {
 	postIDStr := c.Param("id")
 	if postIDStr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"data": "", "error": "id can not be empty"})
+		c.Error(errors.New("id can not be empty"))
 		return
 	}
 
 	postID, err := strconv.ParseInt(postIDStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"data": "", "error": "can not parse id to uint",
-		})
+		c.Error(errors.New("can not parse id to uint"))
 		return
 	}
 
 	var post = models.Posts{}
 	post.ID = uint(postID)
 
-	respPost, err := post.GetPostByID(db.GetDB())
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"data": "", "error": err.Error()})
+	respPost, selectErr := post.GetPostByID(db.GetDB())
+	if selectErr != nil {
+		c.Error(selectErr)
 		return
 	}
-
-	c.JSON(http.StatusOK, gin.H{"data": respPost, "error": ""})
+	utils.Success(c, respPost)
 }
 
 func DeletePost(c *gin.Context) {
 	postIDStr := c.Param("id")
 	if postIDStr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"data": "", "error": "id can not be empty"})
+		c.Error(errors.New("id can not be empty"))
 		return
 	}
 
 	postID, err := strconv.ParseInt(postIDStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"data": "", "error": "can not parse id to uint",
-		})
+		c.Error(errors.New("can not parse id to uint"))
 		return
 	}
 
@@ -80,24 +74,24 @@ func DeletePost(c *gin.Context) {
 	post.UserID = userID.(uint)
 
 	if err := post.DeletePost(db.GetDB()); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"data": "", "error": err.Error()})
+		c.Error(err)
 		return
 	}
 
 	// 同时删除该post下的所有comment
 	var comment = models.Comments{PostID: post.ID}
-	if err := comment.DeleteComment(db.GetDB()); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"data": "", "error": err.Error()})
+	if err := comment.DeletePostComment(db.GetDB()); err != nil {
+		c.Error(err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": postID, "error": ""})
+	utils.Success(c, postID)
 }
 
 func UpdatePost(c *gin.Context) {
 	var toUpdatePost dto.PostRequest
 	if err := c.ShouldBindJSON(&toUpdatePost); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"data": "", "error": "invalid params"})
+		c.Error(err)
 		return
 	}
 
@@ -107,11 +101,11 @@ func UpdatePost(c *gin.Context) {
 
 	post := dto.ToUpdatePostModel(&toUpdatePost)
 	if err := post.UpdatePost(db.GetDB()); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"data": "", "error": err.Error()})
+		c.Error(err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": post.ID, "error": ""})
+	utils.Success(c, post.ID)
 }
 
 func GetPosts(c *gin.Context) {
@@ -120,8 +114,8 @@ func GetPosts(c *gin.Context) {
 	var post = models.Posts{UserID: userID.(uint)}
 	posts, err := post.GetPosts(db.GetDB())
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"data": "", "error": err.Error()})
+		c.Error(err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": posts, "error": ""})
+	utils.Success(c, posts)
 }

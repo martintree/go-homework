@@ -1,34 +1,34 @@
 package handlers
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 	"metanode.com/homework/server/db"
 	"metanode.com/homework/server/dto"
+	"metanode.com/homework/server/utils"
 )
 
 func RegisterUser(c *gin.Context) {
 	var toAddUser dto.UserCreateRequest
 	if err := c.ShouldBindJSON(&toAddUser); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"data": "", "error": "invalid params"})
+		c.Error(err)
 		return
 	}
 
 	//dto转model
 	user := dto.ToCreateUserModel(&toAddUser)
 	if err := user.Register(db.GetDB()); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"data": "", "error": err.Error()})
+		c.Error(err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": user, "error": ""})
+	utils.Success(c, user)
 }
 
 // 登录
 func Login(c *gin.Context) {
 	var loginUser dto.UserLoginRequest
 	if err := c.ShouldBindJSON(&loginUser); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"data": "", "error": "invalid params"})
+		//utils.Fail(c, utils.ErrInvalidRequest.Code, utils.ErrInvalidRequest.Message)
+		c.Error(err)
 		return
 	}
 
@@ -36,8 +36,8 @@ func Login(c *gin.Context) {
 	user := dto.ToLoginUserModel(&loginUser)
 	token, err := user.Login(db.GetDB())
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"data": "", "error": err.Error()})
+		c.Error(err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": token, "error": ""})
+	utils.Success(c, token)
 }

@@ -16,50 +16,44 @@ type Users struct {
 	Password string `gorm:"size:255;not null" json:"-"` // 不返回给前端
 }
 
-func (u *Users) Register(tx *gorm.DB) error {
+func (u *Users) Register(tx *gorm.DB) *utils.AppError {
 	if len(u.Password) > 0 {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
 		if err != nil {
-			return errors.New("failed to hash password")
+			return utils.WrapError(utils.ErrInternalServer, errors.New("failed to hash password"))
 		}
 		u.Password = string(hashedPassword)
 
 		if err := tx.Create(&u).Error; err != nil {
-			return errors.New("failed to create user")
+			return utils.WrapError(utils.ErrDatabase, err)
 		}
 
 		return nil
 	}
-	return errors.New("password can not be empty")
+	return utils.WrapError(utils.ErrInvalidRequest, errors.New("password can not be empty"))
 }
 
-func (u *Users) Login(tx *gorm.DB) (string, error) {
+func (u *Users) Login(tx *gorm.DB) (string, *utils.AppError) {
 	var storedUser Users
 	if err := tx.Where("username = ?", u.Username).First(&storedUser).Error; err != nil {
-		return "", errors.New("invalid username or password")
+
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return "", utils.ErrInvalidCredentials
+		} else {
+			return "", utils.WrapError(utils.ErrDatabase, err)
+		}
 	}
 
 	// 验证密码
 	if err := bcrypt.CompareHashAndPassword([]byte(storedUser.Password), []byte(u.Password)); err != nil {
-		return "", errors.New("invalid username or password")
+		return "", utils.ErrInvalidCredentials
 	}
-
-	// 生成 JWT
-	// token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-	// 	"id":       storedUser.ID,
-	// 	"username": storedUser.Username,
-	// 	"exp":      time.Now().Add(time.Hour * 24).Unix(),
-	// })
 
 	// 生成 JWT
 	token, err := utils.GenerateToken(storedUser.ID)
 	if err != nil {
-		return "", errors.New("failed to generate token")
+		return "", utils.ErrInternalServer
 	}
 
-	// tokenString, err := token.SignedString([]byte(secretKey))
-	// if err != nil {
-	// 	return "", errors.New("failed to generate token")
-	// }
 	return token, nil
 }

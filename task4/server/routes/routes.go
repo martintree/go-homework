@@ -27,8 +27,9 @@ func SetupRoutes(r *gin.Engine) {
 		protected.PUT("/posts", handlers.UpdatePost)        // 更新文章
 		protected.DELETE("/posts/:id", handlers.DeletePost) // 删除文章
 		//评论
-		protected.POST("/comments", handlers.AddComment)              // 创建评论
-		protected.DELETE("/comments/:postId", handlers.DeleteComment) // 删除评论
+		protected.POST("/comments", handlers.AddComment)                       // 创建评论
+		protected.DELETE("/comments/post/:postId", handlers.DeletePostComment) // 删除某个文章下的所有评论
+		protected.DELETE("/comments/:id", handlers.DeleteComment)              // 删除评论
 
 	}
 }
