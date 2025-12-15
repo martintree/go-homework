@@ -19,6 +19,9 @@ func AddComment(c *gin.Context) {
 		return
 	}
 
+	//从上下文中获取userId
+	userID, _ := c.Get("userId") // 已通过中间件验证
+	toAddComment.UserID = userID.(uint)
 	//dto转model
 	comment := dto.ToCreateCommentModel(&toAddComment)
 	if err := comment.AddComment(db.GetDB()); err != nil {

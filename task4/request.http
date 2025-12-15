@@ -61,7 +61,6 @@ Content-type: {{type}}
 Authorization: {{token}}
 
 {
-    "userId":2,
     "postId":2,
     "content":"写的不错哦"
 }
