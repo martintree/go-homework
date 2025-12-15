@@ -34,7 +34,7 @@ func (p *Posts) UpdatePost(tx *gorm.DB) error {
 		return errors.New("ID title content can not be empty")
 	}
 
-	result := tx.Model(&Posts{}).Where("id = ?", p.ID).Updates(p)
+	result := tx.Model(&Posts{}).Where("id = ?", p.ID).Where("user_id = ?", p.UserID).Updates(p)
 
 	if result.Error != nil {
 		return errors.New("failed to update post")
@@ -65,8 +65,8 @@ func (p *Posts) GetPostByID(tx *gorm.DB) (*Posts, error) {
 }
 
 func (p *Posts) DeletePost(tx *gorm.DB) error {
-
-	result := tx.Delete(&Posts{}, p.ID)
+	//必须是用户删除自己的post才行
+	result := tx.Where("id = ?", p.ID).Where("user_id = ?", p.UserID).Delete(&Posts{})
 
 	if result.Error != nil {
 		return result.Error

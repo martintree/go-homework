@@ -2,11 +2,11 @@ package models
 
 import (
 	"errors"
-	"time"
 
-	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
+
+	"metanode.com/homework/server/utils"
 )
 
 type Users struct {
@@ -33,7 +33,7 @@ func (u *Users) Register(tx *gorm.DB) error {
 	return errors.New("password can not be empty")
 }
 
-func (u *Users) Login(tx *gorm.DB, secretKey string) (string, error) {
+func (u *Users) Login(tx *gorm.DB) (string, error) {
 	var storedUser Users
 	if err := tx.Where("username = ?", u.Username).First(&storedUser).Error; err != nil {
 		return "", errors.New("invalid username or password")
@@ -45,15 +45,21 @@ func (u *Users) Login(tx *gorm.DB, secretKey string) (string, error) {
 	}
 
 	// 生成 JWT
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":       storedUser.ID,
-		"username": storedUser.Username,
-		"exp":      time.Now().Add(time.Hour * 24).Unix(),
-	})
+	// token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+	// 	"id":       storedUser.ID,
+	// 	"username": storedUser.Username,
+	// 	"exp":      time.Now().Add(time.Hour * 24).Unix(),
+	// })
 
-	tokenString, err := token.SignedString([]byte(secretKey))
+	// 生成 JWT
+	token, err := utils.GenerateToken(storedUser.ID)
 	if err != nil {
 		return "", errors.New("failed to generate token")
 	}
-	return tokenString, nil
+
+	// tokenString, err := token.SignedString([]byte(secretKey))
+	// if err != nil {
+	// 	return "", errors.New("failed to generate token")
+	// }
+	return token, nil
 }

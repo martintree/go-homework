@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"metanode.com/homework/server/config"
 	"metanode.com/homework/server/db"
 	"metanode.com/homework/server/dto"
 )
@@ -16,10 +15,9 @@ func RegisterUser(c *gin.Context) {
 		return
 	}
 
-	database := db.GetDB()
 	//dto转model
 	user := dto.ToCreateUserModel(&toAddUser)
-	if err := user.Register(database); err != nil {
+	if err := user.Register(db.GetDB()); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"data": "", "error": err.Error()})
 		return
 	}
@@ -34,10 +32,9 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	database := db.GetDB()
 	//dto转model
 	user := dto.ToLoginUserModel(&loginUser)
-	token, err := user.Login(database, config.GetJWTSecretKey())
+	token, err := user.Login(db.GetDB())
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"data": "", "error": err.Error()})
 		return

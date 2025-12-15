@@ -22,5 +22,6 @@ func ToUpdatePostModel(req *PostRequest) *models.Posts {
 	post.ID = req.ID
 	post.Content = req.Content
 	post.Title = req.Title
+	post.UserID = req.UserID
 	return &post
 }

@@ -18,11 +18,13 @@ func AddPost(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"data": "", "error": "invalid params"})
 		return
 	}
+	//从上下文中获取userId
+	userID, _ := c.Get("userId") // 已通过中间件验证
+	toAddPost.UserID = userID.(uint)
 
-	database := db.GetDB()
 	//dto转model
 	post := dto.ToCreatePostModel(&toAddPost)
-	if err := post.AddPost(database); err != nil {
+	if err := post.AddPost(db.GetDB()); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"data": "", "error": err.Error()})
 		return
 	}
@@ -73,6 +75,9 @@ func DeletePost(c *gin.Context) {
 
 	var post = models.Posts{}
 	post.ID = uint(postID)
+	//从上下文中获取userId
+	userID, _ := c.Get("userId") // 已通过中间件验证
+	post.UserID = userID.(uint)
 
 	if err := post.DeletePost(db.GetDB()); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"data": "", "error": err.Error()})
@@ -96,6 +101,10 @@ func UpdatePost(c *gin.Context) {
 		return
 	}
 
+	//从上下文中获取userId
+	userID, _ := c.Get("userId") // 已通过中间件验证
+	toUpdatePost.UserID = userID.(uint)
+
 	post := dto.ToUpdatePostModel(&toUpdatePost)
 	if err := post.UpdatePost(db.GetDB()); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"data": "", "error": err.Error()})
@@ -106,21 +115,9 @@ func UpdatePost(c *gin.Context) {
 }
 
 func GetPosts(c *gin.Context) {
-	userIdStr := c.Param("userId")
-	if userIdStr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"data": "", "error": "userId can not be empty"})
-		return
-	}
-
-	userID, err := strconv.ParseInt(userIdStr, 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"data": "", "error": "can not parse userId to uint",
-		})
-		return
-	}
-
-	var post = models.Posts{UserID: uint(userID)}
+	//从上下文中获取userId
+	userID, _ := c.Get("userId") // 已通过中间件验证
+	var post = models.Posts{UserID: userID.(uint)}
 	posts, err := post.GetPosts(db.GetDB())
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"data": "", "error": err.Error()})
