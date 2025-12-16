@@ -93,7 +93,7 @@ server/
 │   └── db.go                # 初始化数据库
 ├── dto/
 │   ├── user_dto.go          # user DTO
-    ├── comment_dto.go       # comment DTO
+│   ├── comment_dto.go       # comment DTO
 │   └── post_dto.go          # post DTO
 ├── models/
 │   ├── user.go              # 用户模型
